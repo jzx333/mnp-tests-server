@@ -49,3 +49,7 @@ sqlc.yaml
 sqlc.json
 internal/db/*
 mock_*.go
+
+#Test
+cmd/test_runner
+tests/
