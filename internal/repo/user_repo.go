@@ -14,7 +14,6 @@ func NewUserRepo(db *sqlx.DB) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-// Create
 func (r *UserRepo) Create(u *dto.User) (uuid.UUID, error) {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
@@ -26,14 +25,23 @@ func (r *UserRepo) Create(u *dto.User) (uuid.UUID, error) {
 	return u.ID, err
 }
 
-// GetByID
+func (r *UserRepo) GetByGroupID(groupID int) ([]dto.User, error) {
+	var users []dto.User
+	err := r.db.Select(&users, `
+		SELECT u.*
+		FROM users u
+		JOIN user_group_members m ON u.id = m.user_id
+		WHERE m.group_id=$1
+	`, groupID)
+	return users, err
+}
+
 func (r *UserRepo) GetByID(id uuid.UUID) (*dto.User, error) {
 	var u dto.User
 	err := r.db.Get(&u, `SELECT * FROM users WHERE id=$1`, id)
 	return &u, err
 }
 
-// Update
 func (r *UserRepo) Update(u *dto.User) error {
 	_, err := r.db.NamedExec(`
 		UPDATE users
@@ -44,7 +52,6 @@ func (r *UserRepo) Update(u *dto.User) error {
 	return err
 }
 
-// Delete
 func (r *UserRepo) Delete(id uuid.UUID) error {
 	_, err := r.db.Exec(`DELETE FROM users WHERE id=$1`, id)
 	return err

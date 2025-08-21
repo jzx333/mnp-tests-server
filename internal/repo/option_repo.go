@@ -13,7 +13,6 @@ func NewOptionRepo(db *sqlx.DB) *OptionRepo {
 	return &OptionRepo{db: db}
 }
 
-// Create
 func (r *OptionRepo) Create(o *dto.Option) (int, error) {
 	var id int
 	err := r.db.QueryRowx(
@@ -23,14 +22,12 @@ func (r *OptionRepo) Create(o *dto.Option) (int, error) {
 	return id, err
 }
 
-// GetByID
 func (r *OptionRepo) GetByID(id int) (*dto.Option, error) {
 	var o dto.Option
 	err := r.db.Get(&o, `SELECT * FROM options WHERE id=$1`, id)
 	return &o, err
 }
 
-// Update
 func (r *OptionRepo) Update(o *dto.Option) error {
 	_, err := r.db.Exec(
 		`UPDATE options SET question_id=$1, text=$2, is_correct=$3 WHERE id=$4`,
@@ -39,8 +36,19 @@ func (r *OptionRepo) Update(o *dto.Option) error {
 	return err
 }
 
-// Delete
 func (r *OptionRepo) Delete(id int) error {
 	_, err := r.db.Exec(`DELETE FROM options WHERE id=$1`, id)
 	return err
+}
+
+func (r *OptionRepo) CountCorrectOptions(questionID int) (int, error) {
+	var count int
+	err := r.db.Get(&count, `SELECT COUNT(*) FROM options WHERE question_id=$1 AND is_correct=true`, questionID)
+	return count, err
+}
+
+func (r *OptionRepo) GetByQuestionID(questionID int) ([]dto.Option, error) {
+	var opts []dto.Option
+	err := r.db.Select(&opts, `SELECT * FROM options WHERE question_id=$1`, questionID)
+	return opts, err
 }

@@ -16,7 +16,6 @@ func NewTestRepo(db *sqlx.DB) *TestRepo {
 	return &TestRepo{db: db}
 }
 
-// Create
 func (r *TestRepo) Create(t *dto.Test) (int, error) {
 	var id int
 	if t.CreatedAt.IsZero() {
@@ -30,14 +29,12 @@ func (r *TestRepo) Create(t *dto.Test) (int, error) {
 	return id, err
 }
 
-// GetByID
 func (r *TestRepo) GetByID(id int) (*dto.Test, error) {
 	var t dto.Test
 	err := r.db.Get(&t, `SELECT * FROM tests WHERE id=$1`, id)
 	return &t, err
 }
 
-// Update
 func (r *TestRepo) Update(t *dto.Test) error {
 	_, err := r.db.Exec(
 		`UPDATE tests SET title=$1, description=$2 WHERE id=$3`,
@@ -46,8 +43,13 @@ func (r *TestRepo) Update(t *dto.Test) error {
 	return err
 }
 
-// Delete
 func (r *TestRepo) Delete(id int) error {
 	_, err := r.db.Exec(`DELETE FROM tests WHERE id=$1`, id)
 	return err
+}
+
+func (r *TestRepo) GetPoolsByTestID(testID int) ([]int, error) {
+	var poolIDs []int
+	err := r.db.Select(&poolIDs, `SELECT pool_id FROM test_pools WHERE test_id=$1`, testID)
+	return poolIDs, err
 }

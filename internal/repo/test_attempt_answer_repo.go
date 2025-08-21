@@ -40,3 +40,21 @@ func (r *TestAttemptAnswerRepo) Delete(id int) error {
 	_, err := r.db.Exec("DELETE FROM test_attempt_answers WHERE id=$1", id)
 	return err
 }
+
+func (r *TestAttemptAnswerRepo) CalculateScore(attemptID int) (int, int, error) {
+	query := `
+		SELECT
+			COALESCE(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END), 0) AS score,
+			COUNT(*) AS max_score
+		FROM test_attempt_answers
+		WHERE attempt_id = $1
+	`
+
+	var score, maxScore int
+	err := r.db.QueryRow(query, attemptID).Scan(&score, &maxScore)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return score, maxScore, nil
+}

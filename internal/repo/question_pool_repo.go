@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -15,7 +16,6 @@ func NewQuestionPoolRepo(db *sqlx.DB) *QuestionPoolRepo {
 	return &QuestionPoolRepo{db: db}
 }
 
-// Create
 func (r *QuestionPoolRepo) Create(p *dto.QuestionPool) (int, error) {
 	var id int
 	if p.CreatedAt.IsZero() {
@@ -29,14 +29,12 @@ func (r *QuestionPoolRepo) Create(p *dto.QuestionPool) (int, error) {
 	return id, err
 }
 
-// GetByID
 func (r *QuestionPoolRepo) GetByID(id int) (*dto.QuestionPool, error) {
 	var p dto.QuestionPool
 	err := r.db.Get(&p, `SELECT * FROM question_pools WHERE id=$1`, id)
 	return &p, err
 }
 
-// Update
 func (r *QuestionPoolRepo) Update(p *dto.QuestionPool) error {
 	_, err := r.db.Exec(
 		`UPDATE question_pools SET name=$1, description=$2, time_limit_seconds=$3, owner_id=$4, unit_id=$5 WHERE id=$6`,
@@ -45,8 +43,22 @@ func (r *QuestionPoolRepo) Update(p *dto.QuestionPool) error {
 	return err
 }
 
-// Delete
 func (r *QuestionPoolRepo) Delete(id int) error {
 	_, err := r.db.Exec(`DELETE FROM question_pools WHERE id=$1`, id)
 	return err
+}
+
+func (r *QuestionPoolRepo) GetByCuratorOrUnit(userID uuid.UUID, unitID int) ([]dto.QuestionPool, error) {
+	var pools []dto.QuestionPool
+	err := r.db.Select(&pools, `
+		SELECT * FROM question_pools
+		WHERE (owner_id IS NULL AND unit_id=$1) OR (owner_id=$2)
+	`, unitID, userID)
+	return pools, err
+}
+
+func (r *QuestionPoolRepo) GetAll() ([]dto.QuestionPool, error) {
+	var pools []dto.QuestionPool
+	err := r.db.Select(&pools, `SELECT * FROM question_pools`)
+	return pools, err
 }
