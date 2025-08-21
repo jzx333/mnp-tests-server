@@ -51,5 +51,5 @@ internal/db/*
 mock_*.go
 
 #Test
-cmd/test_runner
+cmd/test_runner/
 tests/
