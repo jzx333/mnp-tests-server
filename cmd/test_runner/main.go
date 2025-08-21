@@ -1,9 +1,16 @@
 package main
 
-import "mnp-tests-server/tests"
+import (
+	"log"
+	"mnp-tests-server/tests"
+)
 
 func main() {
-	tests.RunUserTests()
-	// tests.RunDepartmentTests()
-	// tests.RunUnitTests()
+	log.Println("Running user tests...")
+
+	if err := tests.RunUserCRUD(); err != nil {
+		log.Fatalf("User tests failed: %v", err)
+	}
+
+	log.Println("User tests completed successfully!")
 }
